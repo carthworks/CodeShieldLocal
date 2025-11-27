@@ -79,4 +79,13 @@ class InMemoryStore {
     }
 }
 
-export const store = new InMemoryStore()
+// Use global singleton to prevent store reset on hot reload in development
+const globalForStore = globalThis as unknown as {
+    store: InMemoryStore | undefined
+}
+
+export const store = globalForStore.store ?? new InMemoryStore()
+
+if (process.env.NODE_ENV !== 'production') {
+    globalForStore.store = store
+}
