@@ -250,7 +250,23 @@ npm run build
 npm start
 ```
 
----
+### Deploying to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/codeshield-local)
+
+**Quick Deploy:**
+
+1. Push your code to GitHub
+2. Import to Vercel (auto-detects Next.js)
+3. Deploy!
+
+See [VERCEL_DEPLOY.md](VERCEL_DEPLOY.md) for detailed instructions.
+
+**Important Notes:**
+- ⚠️ Vercel free tier has 4.5 MB file upload limit
+- ⚠️ In-memory store resets on deployment (add database for persistence)
+- ⚠️ Serverless functions timeout after 10 seconds (free tier)
+
 
 ## 🔐 Security & Privacy
 

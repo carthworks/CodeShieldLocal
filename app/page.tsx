@@ -1,14 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { Shield, Lock, Zap, FileCode, Brain, Download, ArrowRight, CheckCircle, AlertTriangle, Users, Code, Laptop, MessageSquare } from "lucide-react"
+import { Shield, Lock, Zap, FileCode, Brain, Download, ArrowRight, CheckCircle, AlertTriangle, Users, Code, Laptop, MessageSquare, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Header } from "@/components/layout/Header"
 
 export default function Home() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+            <Header />
             {/* Hero Section */}
             <section className="relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 opacity-70" />
@@ -314,6 +316,78 @@ export default function Home() {
                                 </p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Pricing */}
+            <section id="pricing" className="py-20 bg-white">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Pricing</h2>
+                        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                            Simple, transparent, and free forever
+                        </p>
+                    </div>
+
+                    <div className="max-w-4xl mx-auto">
+                        <Card className="border-2 border-blue-500 shadow-2xl">
+                            <CardHeader className="text-center pb-8 pt-12">
+                                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <Shield className="w-10 h-10 text-white" />
+                                </div>
+                                <CardTitle className="text-4xl mb-2">Free Forever</CardTitle>
+                                <div className="text-5xl font-bold text-gray-900 mb-2">
+                                    $0
+                                    <span className="text-2xl text-gray-500 font-normal">/month</span>
+                                </div>
+                                <CardDescription className="text-lg">
+                                    100% Open Source • No Hidden Costs • No Credit Card Required
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pb-12">
+                                <div className="space-y-4 mb-8">
+                                    {[
+                                        "Unlimited scans",
+                                        "15+ security rules (expanding)",
+                                        "AI-powered analysis with local LLM",
+                                        "Interactive code viewer",
+                                        "Export reports (PDF, Markdown, JSON)",
+                                        "100% privacy - your code never leaves your machine",
+                                        "No telemetry or tracking",
+                                        "Full source code access",
+                                        "Community support",
+                                        "Self-hosted on your infrastructure"
+                                    ].map((feature, idx) => (
+                                        <div key={idx} className="flex items-start gap-3">
+                                            <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <span className="text-gray-700">{feature}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <Link href="/scan/upload" className="block">
+                                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6">
+                                        Get Started Now
+                                        <ArrowRight className="ml-2 w-5 h-5" />
+                                    </Button>
+                                </Link>
+
+                                <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                                    <h4 className="font-semibold text-blue-900 mb-2">Why Free?</h4>
+                                    <p className="text-sm text-blue-800">
+                                        CodeShield Local is open source because we believe security tools should be accessible to everyone.
+                                        Your code is your most valuable asset - you shouldn't have to send it to external services to keep it secure.
+                                    </p>
+                                </div>
+
+                                <div className="mt-6 text-center">
+                                    <p className="text-sm text-gray-500">
+                                        Want to support the project? ⭐ Star us on GitHub or contribute to the codebase!
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </section>
