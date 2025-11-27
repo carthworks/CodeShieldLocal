@@ -134,6 +134,38 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
         window.open(url, '_blank')
     }
 
+    const handleAnalyzeFinding = async (finding: Finding) => {
+        if (!scan) return
+
+        try {
+            // Optimistic update
+            const updatedFindings = findings.map(f =>
+                f.id === finding.id
+                    ? { ...f, aiAnalysis: { analyzed: true, isTruePositive: true, reasoning: "Analyzing...", confidence: 0 } }
+                    : f
+            )
+            setFindings(updatedFindings)
+
+            const res = await fetch(`/api/scan/${scan.id}/findings/${finding.id}/analyze`, {
+                method: 'POST'
+            })
+
+            if (!res.ok) throw new Error("Analysis failed")
+
+            const data = await res.json()
+
+            // Update with real result
+            setFindings(prev => prev.map(f =>
+                f.id === finding.id ? data.finding : f
+            ))
+
+        } catch (error) {
+            console.error("Failed to analyze finding:", error)
+            // Revert on error
+            fetchFindings(scan.id)
+        }
+    }
+
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -316,13 +348,31 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                                                     {finding.description}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {finding.type === 'llm' ? (
-                                                        <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50">
-                                                            <Brain className="w-3 h-3 mr-1" />
-                                                            Verified
-                                                        </Badge>
+                                                    {finding.aiAnalysis?.analyzed ? (
+                                                        <div className="flex flex-col gap-1">
+                                                            <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50 w-fit">
+                                                                <Brain className="w-3 h-3 mr-1" />
+                                                                Verified
+                                                            </Badge>
+                                                            {finding.aiAnalysis.confidence !== undefined && (
+                                                                <span className="text-[10px] text-gray-500">
+                                                                    Conf: {Math.round(finding.aiAnalysis.confidence * 100)}%
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     ) : (
-                                                        <span className="text-xs text-gray-400">-</span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleAnalyzeFinding(finding)
+                                                            }}
+                                                        >
+                                                            <Brain className="w-3 h-3 mr-1" />
+                                                            Analyze
+                                                        </Button>
                                                     )}
                                                 </TableCell>
                                             </TableRow>

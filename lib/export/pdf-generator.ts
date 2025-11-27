@@ -130,21 +130,21 @@ export function generatePDFReport(
             3: { cellWidth: 60 },
             4: { cellWidth: 20 }
         },
-        didDrawCell: (data) => {
+        didParseCell: (data) => {
             if (data.column.index === 2 && data.section === 'body') {
-                const severity = findings[data.row.index].severity
-                let color: [number, number, number] = [156, 163, 175]
+                const finding = findings[data.row.index]
+                if (finding) {
+                    const severity = finding.severity
+                    let color: [number, number, number] = [156, 163, 175]
 
-                if (severity === 'critical') color = [239, 68, 68]
-                else if (severity === 'high') color = [249, 115, 22]
-                else if (severity === 'medium') color = [234, 179, 8]
-                else if (severity === 'low') color = [59, 130, 246]
+                    if (severity === 'critical') color = [239, 68, 68]
+                    else if (severity === 'high') color = [249, 115, 22]
+                    else if (severity === 'medium') color = [234, 179, 8]
+                    else if (severity === 'low') color = [59, 130, 246]
 
-                doc.setTextColor(...color)
-                doc.setFont('helvetica', 'bold')
-            } else {
-                doc.setTextColor(0, 0, 0)
-                doc.setFont('helvetica', 'normal')
+                    data.cell.styles.textColor = color
+                    data.cell.styles.fontStyle = 'bold'
+                }
             }
         }
     })

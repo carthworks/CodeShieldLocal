@@ -55,6 +55,14 @@ export class LLMAnalysisEngine {
 
                         // Mark as LLM verified
                         finding.type = 'llm'
+
+                        // Save detailed AI analysis
+                        finding.aiAnalysis = {
+                            analyzed: true,
+                            isTruePositive: result.isTruePositive,
+                            reasoning: result.reasoning,
+                            confidence: result.confidence
+                        }
                     }
                 } catch (error) {
                     console.error(`LLM analysis failed for finding ${finding.id}:`, error)

@@ -114,6 +114,7 @@ export function CodeViewer({ finding, projectId, isOpen, onClose }: CodeViewerPr
 
                 <div className="flex-1 overflow-auto space-y-4">
                     {/* Vulnerability Details */}
+                    {/* Risk Analysis */}
                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                         <div className="flex items-start gap-2">
                             <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
@@ -123,6 +124,36 @@ export function CodeViewer({ finding, projectId, isOpen, onClose }: CodeViewerPr
                             </div>
                         </div>
                     </div>
+
+                    {/* AI Reasoning */}
+                    {finding.aiAnalysis?.analyzed && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <div className="flex items-start gap-2">
+                                <div className="mt-0.5">
+                                    {/* Brain icon logic would go here if imported */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z" /><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z" /></svg>
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-purple-900 mb-1">AI Analysis</h3>
+                                    <p className="text-sm text-purple-800 mb-2">{finding.aiAnalysis.reasoning}</p>
+                                    <div className="flex gap-2">
+                                        <Badge variant="outline" className="bg-white text-purple-700 border-purple-300">
+                                            Confidence: {Math.round(finding.aiAnalysis.confidence * 100)}%
+                                        </Badge>
+                                        {finding.aiAnalysis.isTruePositive ? (
+                                            <Badge variant="outline" className="bg-white text-red-700 border-red-300">
+                                                True Positive
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="bg-white text-green-700 border-green-300">
+                                                False Positive
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Code Display */}
                     <div className="border rounded-lg overflow-hidden">

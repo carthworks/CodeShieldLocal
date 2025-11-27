@@ -122,6 +122,14 @@ export interface Finding {
     // Metadata
     detectedAt: Date              // Detection timestamp
     language?: string             // Programming language
+
+    // AI Analysis
+    aiAnalysis?: {
+        analyzed: boolean
+        isTruePositive: boolean
+        reasoning: string
+        confidence: number
+    }
 }
 
 export type FindingType = 'static' | 'llm'
