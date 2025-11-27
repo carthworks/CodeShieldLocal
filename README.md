@@ -28,6 +28,9 @@ All processing happens **100% on your machine** — no cloud, no data upload, co
 ✅ **Code Viewer**: Syntax-highlighted vulnerable code  
 ✅ **Zero Dependencies**: No cloud APIs, no telemetry  
 
+https://github.com/carthworks/CodeShieldLocal/blob/main/architecture_diagram.png
+<img width="800" height="800" alt="image" src="https://github.com/user-attachments/assets/9185cf08-0f9a-4af5-a3f4-b153a989994a" />
+
 ---
 
 ## 🚀 Quick Start
