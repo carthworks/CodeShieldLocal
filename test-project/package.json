@@ -1,0 +1,5 @@
+{
+    "name": "test-vulnerable-app",
+    "version": "1.0.0",
+    "description": "Test app with intentional vulnerabilities for CodeShield Local testing"
+}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Project, Scan, ScanStatus, Finding } from "@/lib/types/models"
-import { Shield, FileCode, AlertTriangle, CheckCircle, Play, Loader2, Brain } from "lucide-react"
+import { Shield, FileCode, AlertTriangle, CheckCircle, Play, Loader2, Brain, Download, FileText, FileJson } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -18,6 +18,14 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { formatBytes } from "@/lib/utils"
+import { CodeViewer } from "@/components/viewer/CodeViewer"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { generatePDFReport } from "@/lib/export/pdf-generator"
 
 interface ScanDashboardProps {
     project: Project
@@ -30,6 +38,8 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
     const [findings, setFindings] = useState<Finding[]>([])
     const [isStarting, setIsStarting] = useState(false)
     const [enableLLM, setEnableLLM] = useState(false)
+    const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null)
+    const [isViewerOpen, setIsViewerOpen] = useState(false)
 
     const startScan = async () => {
         setIsStarting(true)
@@ -47,14 +57,18 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                 })
             })
 
-            if (!res.ok) throw new Error("Failed to start scan")
+            if (!res.ok) {
+                const errorData = await res.json()
+                throw new Error(errorData.error || "Failed to start scan")
+            }
 
             const data = await res.json()
             setStatus('scanning')
             pollStatus(data.scanId)
         } catch (error) {
             console.error(error)
-            alert("Failed to start scan")
+            const errorMessage = error instanceof Error ? error.message : "Failed to start scan"
+            alert(`Failed to start scan: ${errorMessage}`)
             setIsStarting(false)
         }
     }
@@ -98,6 +112,29 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
         }
     }
 
+    const handleFindingClick = (finding: Finding) => {
+        setSelectedFinding(finding)
+        setIsViewerOpen(true)
+    }
+
+    const handleExportPDF = () => {
+        if (!scan) return
+        generatePDFReport(scan, findings, project.name)
+    }
+
+    const handleExportMarkdown = async () => {
+        if (!scan) return
+        const url = `/api/scan/${scan.id}/report?format=markdown`
+        window.open(url, '_blank')
+    }
+
+    const handleExportJSON = async () => {
+        if (!scan) return
+        const url = `/api/scan/${scan.id}/report?format=json`
+        window.open(url, '_blank')
+    }
+
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
@@ -123,7 +160,30 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                             </Label>
                         </div>
 
-                        <Button variant="outline">Export Report</Button>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" disabled={!scan || status !== 'completed'}>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Export Report
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={handleExportPDF}>
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    Export as PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleExportMarkdown}>
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    Export as Markdown
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleExportJSON}>
+                                    <FileJson className="w-4 h-4 mr-2" />
+                                    Export as JSON
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                         <Button onClick={startScan} disabled={isStarting || status === 'scanning'}>
                             {isStarting || status === 'scanning' ? (
                                 <>
@@ -237,7 +297,11 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                                     </TableHeader>
                                     <TableBody>
                                         {findings.map((finding) => (
-                                            <TableRow key={finding.id}>
+                                            <TableRow
+                                                key={finding.id}
+                                                className="cursor-pointer hover:bg-gray-50"
+                                                onClick={() => handleFindingClick(finding)}
+                                            >
                                                 <TableCell>
                                                     <Badge className={getSeverityColor(finding.severity)}>
                                                         {finding.severity.toUpperCase()}
@@ -285,6 +349,14 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                     </Card>
                 </div>
             </main>
+
+            {/* Code Viewer Modal */}
+            <CodeViewer
+                finding={selectedFinding}
+                projectId={project.id}
+                isOpen={isViewerOpen}
+                onClose={() => setIsViewerOpen(false)}
+            />
         </div>
     )
 }

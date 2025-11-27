@@ -31,8 +31,9 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error("Start scan error:", error)
+        const errorMessage = error instanceof Error ? error.message : "Failed to start scan"
         return NextResponse.json(
-            { error: "Failed to start scan" },
+            { error: errorMessage },
             { status: 500 }
         )
     }
