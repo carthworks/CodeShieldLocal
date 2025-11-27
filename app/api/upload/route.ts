@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { projectService } from "@/lib/services/project-service"
 
+// Route segment config for handling file uploads
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData()
@@ -36,10 +40,4 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         )
     }
-}
-
-export const config = {
-    api: {
-        bodyParser: false, // Handle FormData manually (Next.js App Router does this by default but good to know)
-    },
 }
