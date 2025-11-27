@@ -48,7 +48,7 @@ export default function Home() {
                         <div className="mt-12 flex items-center justify-center gap-8 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
                                 <CheckCircle className="w-5 h-5 text-green-600" />
-                                <span>15+ Security Rules</span>
+                                <span>35+ Security Rules</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <CheckCircle className="w-5 h-5 text-green-600" />
@@ -247,8 +247,8 @@ export default function Home() {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                         {[
-                            { icon: Shield, title: "15+ Security Rules", desc: "Detect secrets, injections, XSS, weak crypto, and more" },
-                            { icon: Brain, title: "AI-Powered Verification", desc: "Local LLM validates findings and suggests fixes" },
+                            { icon: Shield, title: "35+ Security Rules", desc: "Detect secrets, injections, XSS, weak crypto, and more" },
+                            { icon: Brain, title: "AI-Powered Verification", desc: "Local LLM validates findings, suggests fixes, and offers on-demand analysis" },
                             { icon: FileCode, title: "Interactive Code Viewer", desc: "Click findings to see highlighted vulnerable code" },
                             { icon: Download, title: "Professional Reports", desc: "Export as PDF, Markdown, or JSON" },
                             { icon: Zap, title: "Real-Time Progress", desc: "Watch your scan progress with live updates" },
@@ -291,7 +291,7 @@ export default function Home() {
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="text-orange-600 mt-1">•</span>
-                                            <span><strong>Limited Rules:</strong> 15 rules currently (expanding to 50+)</span>
+                                            <span><strong>Growing Ruleset:</strong> 35+ rules currently (expanding to 100+)</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="text-orange-600 mt-1">•</span>
@@ -349,7 +349,7 @@ export default function Home() {
                                 <div className="space-y-4 mb-8">
                                     {[
                                         "Unlimited scans",
-                                        "15+ security rules (expanding)",
+                                        "35+ security rules (expanding)",
                                         "AI-powered analysis with local LLM",
                                         "Interactive code viewer",
                                         "Export reports (PDF, Markdown, JSON)",
