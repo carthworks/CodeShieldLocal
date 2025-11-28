@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Project, Scan, ScanStatus, Finding } from "@/lib/types/models"
-import { Shield, FileCode, AlertTriangle, CheckCircle, Play, Loader2, Brain, Download, FileText, FileJson, Globe, ExternalLink } from "lucide-react"
+import { Shield, FileCode, AlertTriangle, CheckCircle, Play, Loader2, Brain, Download, FileText, FileJson, Globe, ExternalLink, LayoutList, LayoutGrid, ChevronDown, ChevronRight, Lightbulb, ArrowUpRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -40,6 +40,8 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
     const [enableLLM, setEnableLLM] = useState(false)
     const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null)
     const [isViewerOpen, setIsViewerOpen] = useState(false)
+    const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list')
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
     const startScan = async () => {
         setIsStarting(true)
@@ -171,6 +173,49 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
             fetchFindings(scan.id)
         }
     }
+
+    const groupedFindings = useMemo(() => {
+        const groups: Record<string, Finding[]> = {}
+        findings.forEach(f => {
+            const key = f.vulnerability
+            if (!groups[key]) groups[key] = []
+            groups[key].push(f)
+        })
+        return Object.entries(groups).map(([name, items]) => ({
+            name,
+            items,
+            severity: items.reduce((max, curr) => {
+                const order = { critical: 4, high: 3, medium: 2, low: 1, info: 0 }
+                // @ts-ignore
+                return order[curr.severity] > order[max] ? curr.severity : max
+            }, 'info' as string),
+            count: items.length
+        })).sort((a, b) => {
+            const order = { critical: 4, high: 3, medium: 2, low: 1, info: 0 }
+            // @ts-ignore
+            return order[b.severity] - order[a.severity]
+        })
+    }, [findings])
+
+    const toggleGroup = (name: string) => {
+        setExpandedGroups(prev => ({ ...prev, [name]: !prev[name] }))
+    }
+
+    const securityInsights = useMemo(() => {
+        if (findings.length === 0) return null
+
+        const topVulnerability = groupedFindings[0]
+        const fileCounts: Record<string, number> = {}
+        findings.forEach(f => {
+            fileCounts[f.file] = (fileCounts[f.file] || 0) + 1
+        })
+        const topFile = Object.entries(fileCounts).sort((a, b) => b[1] - a[1])[0]
+
+        return {
+            topVulnerability,
+            topFile
+        }
+    }, [findings, groupedFindings])
 
 
     return (
@@ -319,107 +364,247 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                     </Card>
                 )}
 
+                {/* Security Insights */}
+                {securityInsights && (
+                    <Card className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-100">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-blue-900">
+                                <Lightbulb className="w-5 h-5 text-yellow-500" />
+                                Security Insights
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-red-100 rounded-lg">
+                                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Top Vulnerability</h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        <span className="font-medium text-red-600">{securityInsights.topVulnerability.name}</span> accounts for {Math.round((securityInsights.topVulnerability.count / findings.length) * 100)}% of all findings.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <FileCode className="w-5 h-5 text-purple-600" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Most Affected File</h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        <span className="font-medium text-purple-600">{securityInsights.topFile[0]}</span> contains {securityInsights.topFile[1]} issues.
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Findings Table */}
                 <div className="grid grid-cols-1 gap-8">
                     <Card className="min-h-[500px]">
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>Vulnerability Findings</CardTitle>
+                            <div className="flex items-center bg-gray-100 p-1 rounded-lg">
+                                <Button
+                                    variant={viewMode === 'list' ? 'white' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setViewMode('list')}
+                                    className={`h-8 px-3 ${viewMode === 'list' ? 'bg-white shadow-sm' : ''}`}
+                                >
+                                    <LayoutList className="w-4 h-4 mr-2" />
+                                    List
+                                </Button>
+                                <Button
+                                    variant={viewMode === 'grouped' ? 'white' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setViewMode('grouped')}
+                                    className={`h-8 px-3 ${viewMode === 'grouped' ? 'bg-white shadow-sm' : ''}`}
+                                >
+                                    <LayoutGrid className="w-4 h-4 mr-2" />
+                                    Grouped
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             {findings.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-[100px]">Severity</TableHead>
-                                            <TableHead>Vulnerability</TableHead>
-                                            <TableHead>Standards</TableHead>
-                                            <TableHead>Location</TableHead>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead>AI Analysis</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {findings.map((finding) => (
-                                            <TableRow
-                                                key={finding.id}
-                                                className="cursor-pointer hover:bg-gray-50"
-                                                onClick={() => handleFindingClick(finding)}
-                                            >
-                                                <TableCell>
-                                                    <Badge className={getSeverityColor(finding.severity)}>
-                                                        {finding.severity.toUpperCase()}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="font-medium">{finding.vulnerability}</div>
-                                                    {finding.fix && (
-                                                        <Badge variant="outline" className="mt-1 text-xs border-green-200 text-green-700 bg-green-50">
-                                                            Fix Available
+                                viewMode === 'list' ? (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-[100px]">Severity</TableHead>
+                                                <TableHead>Vulnerability</TableHead>
+                                                <TableHead>Standards</TableHead>
+                                                <TableHead>Location</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>AI Analysis</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {findings.map((finding) => (
+                                                <TableRow
+                                                    key={finding.id}
+                                                    className="cursor-pointer hover:bg-gray-50"
+                                                    onClick={() => handleFindingClick(finding)}
+                                                >
+                                                    <TableCell>
+                                                        <Badge className={getSeverityColor(finding.severity)}>
+                                                            {finding.severity.toUpperCase()}
                                                         </Badge>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col gap-1">
-                                                        {finding.cweId && (
-                                                            <a
-                                                                href={`https://cwe.mitre.org/data/definitions/${finding.cweId.replace(/[^0-9]/g, '')}.html`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                                            >
-                                                                {finding.cweId}
-                                                                <ExternalLink className="w-3 h-3" />
-                                                            </a>
-                                                        )}
-                                                        {finding.owaspCategory && (
-                                                            <span className="text-xs text-gray-500">
-                                                                {finding.owaspCategory}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="text-sm font-mono">{finding.file}</div>
-                                                    <div className="text-xs text-gray-500">Line {finding.lineStart}</div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <span className="text-xs text-gray-500">
-                                                        {new Date(finding.detectedAt).toLocaleDateString()}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {finding.aiAnalysis?.analyzed ? (
-                                                        <div className="flex flex-col gap-1">
-                                                            <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50 w-fit">
-                                                                <Brain className="w-3 h-3 mr-1" />
-                                                                Verified
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="font-medium">{finding.vulnerability}</div>
+                                                        {finding.fix && (
+                                                            <Badge variant="outline" className="mt-1 text-xs border-green-200 text-green-700 bg-green-50">
+                                                                Fix Available
                                                             </Badge>
-                                                            {finding.aiAnalysis.confidence !== undefined && (
-                                                                <span className="text-[10px] text-gray-500">
-                                                                    Conf: {Math.round(finding.aiAnalysis.confidence * 100)}%
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-col gap-1">
+                                                            {finding.cweId && (
+                                                                <a
+                                                                    href={`https://cwe.mitre.org/data/definitions/${finding.cweId.replace(/[^0-9]/g, '')}.html`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                                                >
+                                                                    {finding.cweId}
+                                                                    <ExternalLink className="w-3 h-3" />
+                                                                </a>
+                                                            )}
+                                                            {finding.owaspCategory && (
+                                                                <span className="text-xs text-gray-500">
+                                                                    {finding.owaspCategory}
                                                                 </span>
                                                             )}
                                                         </div>
-                                                    ) : (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-7 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                handleAnalyzeFinding(finding)
-                                                            }}
-                                                        >
-                                                            <Brain className="w-3 h-3 mr-1" />
-                                                            Analyze
-                                                        </Button>
-                                                    )}
-                                                </TableCell>
-                                            </TableRow>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="text-sm font-mono">{finding.file}</div>
+                                                        <div className="text-xs text-gray-500">Line {finding.lineStart}</div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <span className="text-xs text-gray-500">
+                                                            {new Date(finding.detectedAt).toLocaleDateString()}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {finding.aiAnalysis?.analyzed ? (
+                                                            <div className="flex flex-col gap-1">
+                                                                <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50 w-fit">
+                                                                    <Brain className="w-3 h-3 mr-1" />
+                                                                    Verified
+                                                                </Badge>
+                                                                {finding.aiAnalysis.confidence !== undefined && (
+                                                                    <span className="text-[10px] text-gray-500">
+                                                                        Conf: {Math.round(finding.aiAnalysis.confidence * 100)}%
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-7 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    handleAnalyzeFinding(finding)
+                                                                }}
+                                                            >
+                                                                <Brain className="w-3 h-3 mr-1" />
+                                                                Analyze
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {groupedFindings.map((group) => (
+                                            <div key={group.name} className="border rounded-lg overflow-hidden">
+                                                <div
+                                                    className="bg-gray-50 p-4 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors"
+                                                    onClick={() => toggleGroup(group.name)}
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        {expandedGroups[group.name] ? (
+                                                            <ChevronDown className="w-5 h-5 text-gray-500" />
+                                                        ) : (
+                                                            <ChevronRight className="w-5 h-5 text-gray-500" />
+                                                        )}
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <h3 className="font-semibold text-gray-900">{group.name}</h3>
+                                                                <Badge variant="secondary" className="text-xs">
+                                                                    {group.count} issues
+                                                                </Badge>
+                                                            </div>
+                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                Highest Severity: <span className={`font-medium ${group.severity === 'critical' ? 'text-red-600' : group.severity === 'high' ? 'text-orange-600' : 'text-yellow-600'}`}>{group.severity.toUpperCase()}</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <Button variant="ghost" size="sm">
+                                                        View Details
+                                                    </Button>
+                                                </div>
+
+                                                {expandedGroups[group.name] && (
+                                                    <div className="border-t">
+                                                        {/* Group Intelligence */}
+                                                        <div className="bg-blue-50 p-4 border-b border-blue-100 flex items-start gap-3">
+                                                            <Brain className="w-5 h-5 text-blue-600 mt-0.5" />
+                                                            <div>
+                                                                <h4 className="font-semibold text-blue-900 text-sm">AI Insight</h4>
+                                                                <p className="text-sm text-blue-800 mt-1">
+                                                                    This vulnerability type typically indicates {group.name.toLowerCase().includes('injection') ? 'improper handling of untrusted data.' : 'security configuration issues.'}
+                                                                    Review all instances and apply consistent validation or sanitization.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <Table>
+                                                            <TableHeader>
+                                                                <TableRow>
+                                                                    <TableHead>Location</TableHead>
+                                                                    <TableHead>Description</TableHead>
+                                                                    <TableHead>Action</TableHead>
+                                                                </TableRow>
+                                                            </TableHeader>
+                                                            <TableBody>
+                                                                {group.items.map((finding) => (
+                                                                    <TableRow
+                                                                        key={finding.id}
+                                                                        className="cursor-pointer hover:bg-gray-50"
+                                                                        onClick={() => handleFindingClick(finding)}
+                                                                    >
+                                                                        <TableCell>
+                                                                            <div className="font-mono text-sm">{finding.file}</div>
+                                                                            <div className="text-xs text-gray-500">Line {finding.lineStart}</div>
+                                                                        </TableCell>
+                                                                        <TableCell className="max-w-md truncate">
+                                                                            {finding.description}
+                                                                        </TableCell>
+                                                                        <TableCell>
+                                                                            <Button variant="ghost" size="sm" className="text-blue-600">
+                                                                                View
+                                                                                <ArrowUpRight className="w-3 h-3 ml-1" />
+                                                                            </Button>
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ))}
-                                    </TableBody>
-                                </Table>
+                                    </div>
+                                )
                             ) : (
                                 <div className="flex flex-col items-center justify-center h-[300px] text-gray-500">
                                     {status === 'completed' ? (
