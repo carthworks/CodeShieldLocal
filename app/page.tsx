@@ -160,6 +160,21 @@ export default function Home() {
                                 </div>
                             </div>
 
+                            {/* Detailed Architecture Diagram */}
+                            <div className="mt-12">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Complete System Architecture</h3>
+                                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-200">
+                                    <img
+                                        src="/architecture_diagram_new.png"
+                                        alt="CodeShield Local System Architecture Diagram"
+                                        className="w-full h-auto rounded-lg shadow-lg"
+                                    />
+                                    <p className="text-sm text-gray-600 text-center mt-4">
+                                        Complete data flow from upload to report generation - all processing happens locally
+                                    </p>
+                                </div>
+                            </div>
+
                             <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                 <div className="flex items-start gap-3">
                                     <Lock className="w-5 h-5 text-blue-600 mt-0.5" />
