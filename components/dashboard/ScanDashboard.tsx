@@ -409,7 +409,7 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                             <CardTitle>Vulnerability Findings</CardTitle>
                             <div className="flex items-center bg-gray-100 p-1 rounded-lg">
                                 <Button
-                                    variant={viewMode === 'list' ? 'white' : 'ghost'}
+                                    variant="ghost"
                                     size="sm"
                                     onClick={() => setViewMode('list')}
                                     className={`h-8 px-3 ${viewMode === 'list' ? 'bg-white shadow-sm' : ''}`}
@@ -418,7 +418,7 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                                     List
                                 </Button>
                                 <Button
-                                    variant={viewMode === 'grouped' ? 'white' : 'ghost'}
+                                    variant="ghost"
                                     size="sm"
                                     onClick={() => setViewMode('grouped')}
                                     className={`h-8 px-3 ${viewMode === 'grouped' ? 'bg-white shadow-sm' : ''}`}
