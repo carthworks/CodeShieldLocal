@@ -47,6 +47,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             headers.set('Content-Type', 'application/json')
             headers.set('Content-Disposition', `attachment; filename="${project.name}-security-report.json"`)
             return new NextResponse(report.content as string, { headers })
+        } else if (format === 'html') {
+            headers.set('Content-Type', 'text/html')
+            headers.set('Content-Disposition', `attachment; filename="${project.name}-security-report.html"`)
+            return new NextResponse(report.content as string, { headers })
         }
 
         return NextResponse.json(report)

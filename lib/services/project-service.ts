@@ -26,25 +26,34 @@ export class ProjectService {
         const zip = await JSZip.loadAsync(buffer)
 
         // Extract all files
-        const extractionPromises: Promise<void>[] = []
-
+        // Extract all files
+        const entries: { relativePath: string, zipEntry: JSZip.JSZipObject }[] = []
         zip.forEach((relativePath, zipEntry) => {
-            if (zipEntry.dir) {
-                const dirPath = path.join(projectDir, relativePath)
-                extractionPromises.push(fs.mkdir(dirPath, { recursive: true }).then(() => { }))
-            } else {
-                const filePath = path.join(projectDir, relativePath)
-                const dirPath = path.dirname(filePath)
-
-                extractionPromises.push(
-                    fs.mkdir(dirPath, { recursive: true })
-                        .then(() => zipEntry.async('nodebuffer'))
-                        .then(content => fs.writeFile(filePath, content))
-                )
-            }
+            entries.push({ relativePath, zipEntry })
         })
 
-        await Promise.all(extractionPromises)
+        // Process in chunks to avoid EMFILE and race conditions
+        const CHUNK_SIZE = 20
+        for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+            const chunk = entries.slice(i, i + CHUNK_SIZE)
+            await Promise.all(chunk.map(async ({ relativePath, zipEntry }) => {
+                // Prevent directory traversal
+                const safePath = path.normalize(relativePath).replace(/^(\.\.[\/\\])+/, '')
+
+                if (zipEntry.dir) {
+                    const dirPath = path.join(projectDir, safePath)
+                    await fs.mkdir(dirPath, { recursive: true })
+                } else {
+                    const filePath = path.join(projectDir, safePath)
+                    const dirPath = path.dirname(filePath)
+
+                    await fs.mkdir(dirPath, { recursive: true })
+
+                    const content = await zipEntry.async('nodebuffer')
+                    await fs.writeFile(filePath, content)
+                }
+            }))
+        }
 
         // Build file tree
         const tree = await buildFileTree(projectDir)

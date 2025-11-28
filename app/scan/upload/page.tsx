@@ -38,7 +38,8 @@ export default function UploadPage() {
             setProgress(100)
 
             if (!response.ok) {
-                throw new Error("Upload failed")
+                const errorData = await response.json().catch(() => ({}))
+                throw new Error(errorData.error || "Upload failed")
             }
 
             const data = await response.json()

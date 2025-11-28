@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Project, Scan, ScanStatus, Finding } from "@/lib/types/models"
-import { Shield, FileCode, AlertTriangle, CheckCircle, Play, Loader2, Brain, Download, FileText, FileJson } from "lucide-react"
+import { Shield, FileCode, AlertTriangle, CheckCircle, Play, Loader2, Brain, Download, FileText, FileJson, Globe, ExternalLink } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -104,7 +104,7 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
 
     const getSeverityColor = (severity: string) => {
         switch (severity) {
-            case 'critical': return 'bg-red-500 hover:bg-red-600'
+            case 'critical': return 'bg-red-500 hover:bg-red-600 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.6)]'
             case 'high': return 'bg-orange-500 hover:bg-orange-600'
             case 'medium': return 'bg-yellow-500 hover:bg-yellow-600'
             case 'low': return 'bg-blue-500 hover:bg-blue-600'
@@ -131,6 +131,12 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
     const handleExportJSON = async () => {
         if (!scan) return
         const url = `/api/scan/${scan.id}/report?format=json`
+        window.open(url, '_blank')
+    }
+
+    const handleExportHTML = async () => {
+        if (!scan) return
+        const url = `/api/scan/${scan.id}/report?format=html`
         window.open(url, '_blank')
     }
 
@@ -204,6 +210,10 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                                 <DropdownMenuItem onClick={handleExportPDF}>
                                     <FileText className="w-4 h-4 mr-2" />
                                     Export as PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleExportHTML}>
+                                    <Globe className="w-4 h-4 mr-2" />
+                                    Export as HTML
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={handleExportMarkdown}>
                                     <FileText className="w-4 h-4 mr-2" />
@@ -320,10 +330,11 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Severity</TableHead>
+                                            <TableHead className="w-[100px]">Severity</TableHead>
                                             <TableHead>Vulnerability</TableHead>
+                                            <TableHead>Standards</TableHead>
                                             <TableHead>Location</TableHead>
-                                            <TableHead>Description</TableHead>
+                                            <TableHead>Date</TableHead>
                                             <TableHead>AI Analysis</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -339,13 +350,43 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                                                         {finding.severity.toUpperCase()}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="font-medium">{finding.vulnerability}</TableCell>
                                                 <TableCell>
-                                                    <div className="text-sm">{finding.file}</div>
+                                                    <div className="font-medium">{finding.vulnerability}</div>
+                                                    {finding.fix && (
+                                                        <Badge variant="outline" className="mt-1 text-xs border-green-200 text-green-700 bg-green-50">
+                                                            Fix Available
+                                                        </Badge>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col gap-1">
+                                                        {finding.cweId && (
+                                                            <a
+                                                                href={`https://cwe.mitre.org/data/definitions/${finding.cweId.replace(/[^0-9]/g, '')}.html`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                                            >
+                                                                {finding.cweId}
+                                                                <ExternalLink className="w-3 h-3" />
+                                                            </a>
+                                                        )}
+                                                        {finding.owaspCategory && (
+                                                            <span className="text-xs text-gray-500">
+                                                                {finding.owaspCategory}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="text-sm font-mono">{finding.file}</div>
                                                     <div className="text-xs text-gray-500">Line {finding.lineStart}</div>
                                                 </TableCell>
-                                                <TableCell className="max-w-md truncate" title={finding.description}>
-                                                    {finding.description}
+                                                <TableCell>
+                                                    <span className="text-xs text-gray-500">
+                                                        {new Date(finding.detectedAt).toLocaleDateString()}
+                                                    </span>
                                                 </TableCell>
                                                 <TableCell>
                                                     {finding.aiAnalysis?.analyzed ? (
