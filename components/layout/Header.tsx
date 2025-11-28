@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Shield, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import { LLMStatus } from "@/components/layout/LLMStatus"
 
 export function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -29,6 +30,7 @@ export function Header() {
                     <span className="text-sm text-gray-500 hidden sm:inline">Local</span>
                 </Link>
 
+
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-6">
                     {navItems.map((item) => (
@@ -40,6 +42,7 @@ export function Header() {
                             {item.name}
                         </a>
                     ))}
+                    <LLMStatus />
                     <Link href="/scan/upload">
                         <Button className="bg-blue-600 hover:bg-blue-700">
                             Launch App

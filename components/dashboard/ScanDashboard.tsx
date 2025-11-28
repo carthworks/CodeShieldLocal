@@ -26,6 +26,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { generatePDFReport } from "@/lib/export/pdf-generator"
+import { LLMStatus } from "@/components/layout/LLMStatus"
 
 interface ScanDashboardProps {
     project: Project
@@ -228,6 +229,7 @@ export function ScanDashboard({ project }: ScanDashboardProps) {
                         <span className="font-bold text-gray-900">CodeShield Local</span>
                         <span className="mx-2 text-gray-300">/</span>
                         <span className="font-medium text-gray-600">{project.name}</span>
+                        <LLMStatus />
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center space-x-2">

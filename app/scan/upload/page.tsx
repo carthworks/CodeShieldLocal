@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { FileUploader } from "@/components/upload/FileUploader"
 import { Shield } from "lucide-react"
+import { LLMStatus } from "@/components/layout/LLMStatus"
 
 export default function UploadPage() {
     const router = useRouter()
@@ -57,9 +58,12 @@ export default function UploadPage() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <header className="bg-white border-b px-6 py-4">
-                <div className="container mx-auto flex items-center gap-2">
-                    <Shield className="w-6 h-6 text-blue-600" />
-                    <span className="font-bold text-gray-900">CodeShield Local</span>
+                <div className="container mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Shield className="w-6 h-6 text-blue-600" />
+                        <span className="font-bold text-gray-900">CodeShield Local</span>
+                    </div>
+                    <LLMStatus />
                 </div>
             </header>
 
